@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Image Classifier</title>
+    <!--Add Bootstrap CSS-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+      /*Add Gradient Background*/
+	  body{
+		min-height: 100vh; /* Set the minimum height of the body element to 100% of the viewport height */
+		background: linear-gradient(to bottom, #00bcd4, #2196f3);
+		background-repeat: no-repeat;
+		background-size: cover; /* Scale the background image to cover the entire body element */
+		display: flex; /* Add flexbox properties to the body element */
+		flex-direction: column;
+	  }
+      /* Center the "Image Classifier" text */
+      .center-text {
+        text-align: center;
+		text-style: 
+      }
+      
+	  h1.center-text {
+		font-family: Arial, sans-serif;
+	  }
+
+      #wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 10px;
+      }
+
+      #input-section {
+        margin-right: 10px;
+        flex-basis: 100%;
+        max-width: 100%;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      label, input[type="file"], button {
+        width: 100%;
+      }
+      
+      /*Add Bootstrap Styling*/
+      button[type="submit"]{
+        margin-top: 10px;
+      }
+
+      img#uploaded-image {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto 10px;
+      }
+
+      div#result-container {
+        padding: 10px;
+        box-sizing: border-box;
+        flex-basis: 100%;
+        max-width: 100%;
+        min-height: 150px;
+      }
+
+      #result {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        color: black;
+      }
+
+      #result li {
+        margin: 3px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #result li span {
+        margin-left: 10px;
+      }
+
+      /*Add Responsive Bootstrap Styling*/
+      @media screen and (min-width: 768px) {
+        #input-section {
+          width: 50%;
+          max-width: 300px;
+        }
+
+        div#result-container {
+          width: 30%;
+          max-width: 500px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="wrapper">
+      <section id="input-section">
+        <form enctype="multipart/form-data">
+          <label>Upload an image:</label>
+          <input type="file" name="file" accept=".jpeg,.jpg,.png" required>
+          <!--Add Bootstrap Button Styling-->
+          <button type="submit" class="btn btn-primary">Classify Image</button>
+        </form>
+        
+        <!--Add Spacing to the Button-->
+        <div style="margin-bottom: 20px;"></div>
+        <img id="uploaded-image" src="" alt="">
+      </section>
+
+      <div id="result-container">
+        <ul id="result"></ul>
+      </div>
+    </div>
+
+    <!--Add Bootstrap JS-->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      const form = document.querySelector('form')
+      const result = document.querySelector('#result')
+      const imgPreview = document.querySelector('#uploaded-image')
+
+      // Add an event listener to the file input element to show the image preview
+      form.querySelector('input[name="file"]').addEventListener('change', (e) => {
+        e.preventDefault()
+        const file = e.target.files[0]
+
+        // Set the preview image source to the selected file
+        const reader = new FileReader();
+        reader.addEventListener("load", function () {
+          imgPreview.src = reader.result;
+        }, false);
+        reader.readAsDataURL(file);
+
+        // Clear any previous prediction results from the page
+        result.innerHTML = ''
+      })
+
+      // Add an event listener to the form to submit the file for prediction
+      form.addEventListener('submit', (e) => {
+        e.preventDefault() // Prevent form submission
+
+        const file = form.querySelector('input[name="file"]').files[0]
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText)
+            let html = ''
+            data.forEach((d) => {
+              html += `<li>${d[0]}: ${(d[1]).toFixed(2)}%</li>`
+            })
+            result.innerHTML = html
+          }
+        }
+        xhr.open('POST', '/predict', true)
+        xhr.send(formData)
+      })
+    </script>
+  </body>
+</html>
